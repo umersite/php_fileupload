@@ -15,12 +15,17 @@
                 $_SESSION['user'] =$email;
                 $_SESSION['type']= $row['loginType'];
 
-                if($_SESSION['type'] ==='admin'){
+                echo $_SESSION['type'];
+
+                if($_SESSION['type'] =='admin'){
                     header('location:product.php');
                 }else{
                     header('location:index.php');
                 }
-            }       
+            }  else {
+              $error = "invalid userid or password";
+            }
+
        }
 
       }
@@ -132,8 +137,8 @@ a {
                     </div>
                 </div>
                 <?php 
-                    if(isset($email)){
-                        echo $re;
+                    if(isset($error)){
+                        echo $error;
                     }
                 ?>
             </form>
