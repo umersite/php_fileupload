@@ -4,43 +4,58 @@
     if(!isset($_SESSION['type'])){
         header('location:login.php');
     }
-    if (isset($_REQUEST['btnUpload'])) {
-      $itemname = $_POST['txtName'];
-       $itemrate = $_POST['txtRate'];
+        if (isset($_REQUEST['btnUpload'])) {
+          $itemname = $_POST['txtName'];
+          $itemrate = $_POST['txtRate'];
 
-       $image = $_FILES['txtPic']["name"];//it will give the name of file
-       $type = $_FILES['txtPic']['type'];//it will give type of file
-       $size = $_FILES['txtPic']['size'];
-       $temp = $_FILES['txtPic']['tmp_name'];
-       $msg_upload = "requst obj name is {$image} of type {$type} of size {$size} with name {$temp}";
-       $path = "image/".$image;
-    
-       if (!empty($temp)) {
-            
-        //echo $error_msg;
-        if ($type=="image/jpg" || $type=="image/jpeg") {
-            if (!file_exists($path)) {
+          $image = $_FILES['txtPic']["name"];//it will give the name of file
+          $type = $_FILES['txtPic']['type'];//it will give type of file
+          $size = $_FILES['txtPic']['size'];
+          $temp = $_FILES['txtPic']['tmp_name'];
+          $msg_upload = "requst obj name is {$image} of type {$type} of size {$size} with name {$temp}";
+          $path = "image/".$image;
+        
+          if (!empty($temp)) {
                 
-               
-                
-                move_uploaded_file($temp,$path);
-
+            //echo $error_msg;
+            if ($type=="image/jpg" || $type=="image/jpeg") {
+                if (!file_exists($path)) {  
+                    move_uploaded_file($temp,$path);
+                }
+                else{
+                    $error = "file already exists.....rename file";
+                }
             }
             else{
-                $error = "file already exists.....rename file";
-               
+              $error = "Wrong type selected";
             }
+        }else{
+            $error = "please select another image";
+            
         }
-        else{
-          $error = "Wrong type selected";
-        }
-    }else{
-        $error = "please select another image";
-        $error_msg;
-    }
+        if(!isset($error)){
+            //$stmt = "insert into product (productName, productRate, productPic) values ('$itemname',$itemrate,'$patch')";
+              $query = "insert into product (productName, productRate, productPic) values (:name,:rate,:pic)";
+              $stmt = $db->prepare($query);
 
+              $stmt->bindParam(':name',$itemname);
+              $stmt->bindParam(':rate',$itemrate);
+              $stmt->bindParam(':pic',$image);
+
+              if($stmt->execute()){
+                $succmsg = "file is uploaded and saved";
+              }
+
+
+        }
+
+        
 
     } 
+    if(isset($_REQUEST['btnLogout'])){
+      session_destroy();
+      header('location:login.php');
+    }
     
 ?>
 
@@ -48,7 +63,7 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <title>Title</title>
+    <title>Product Admin</title>
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -61,7 +76,9 @@
         <div class="jumbotron">
             <h3>Product List</h3>
            <p>
-            <button class="btn btn-danger">Logout</button>
+             <form action="" method="post">
+             <button class="btn btn-danger" name="btnLogout" id="btnLogout">Logout</button>
+             </form>
            </p>
         </div>
         <div>
@@ -85,7 +102,41 @@
                 </form>
               </div>
               <div class="col-sm-6">
-                product table will go here
+                  <?php
+                    $qry = "select * from product order by productid desc";
+                    $sno = 1;
+                  ?>
+                  <table class="table table-responsive">
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Rate</th>
+                        <th>Picture</th>
+                        <th>Action</th>
+                      </tr>
+                      <thead>
+                      <tbody>  
+                          <?php 
+                            $rslt = $db->query($qry);
+                            foreach($rslt as $row)
+                              {
+                                echo "<tr>";
+                          ?>
+                              <td><?php echo $sno; ?></td>
+                              <td><?php echo $row['productName']; ?></td>
+                              <td><?php echo $row['productRate']; ?></td>
+                              <td><img src="<?php echo 'image/'.$row['productPic']; ?>" width="100" height="auto" alt="<?php echo $row['productName']; ?>"></td>
+                              <td></td>
+                          <?php 
+                                echo "</tr>";
+                                $sno=$sno+1;
+                              }
+                          ?>
+                    </tbody>
+                  </table>
+
+              
               </div>
             </div>
             <div>
@@ -106,6 +157,16 @@
                   <div class="alert alert-info alert-dismissible">
                     <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
                     <strong>Info!</strong> <?php echo $msg_upload; ?>
+                  </div>
+                <?php      
+                    }
+                ?>
+               <?php
+                    if(isset($succmsg)){
+                ?>
+                  <div class="alert alert-success alert-dismissible">
+                    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                    <strong>Info!</strong> <?php echo $succmsg; ?>
                   </div>
                 <?php      
                     }
