@@ -4,7 +4,10 @@
     if(!isset($_SESSION['user'])){
         header('location:login.php');
     }
-    
+    if(isset($_REQUEST['btnLogout'])){
+      session_destroy();
+      header('location:login.php');
+    }
     
 ?>
 
@@ -18,14 +21,70 @@
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+          <style>
+            .card {
+              box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+              max-width: 300px;
+              margin: auto;
+              text-align: center;
+              font-family: arial;
+            }
+
+            .price {
+              color: grey;
+              font-size: 22px;
+            }
+
+            .card button {
+              border: none;
+              outline: 0;
+              padding: 12px;
+              color: white;
+              background-color: #000;
+              text-align: center;
+              cursor: pointer;
+              width: 100%;
+              font-size: 18px;
+            }
+
+            .card button:hover {
+              opacity: 0.7;
+            }
+      </style>
+ 
   </head>
   <body>
       <div class="container">
         <div class="jumbotron">
             <h3>Product List</h3>
            <p>
-            <a href="login.php" class="btn btn-success">Login</a>
+             <form action="">
+                <button name="btnLogout" class="btn btn-danger">Logout</button>
+             </form>
            </p>
+           <p>
+              <span style="font-weight:bold"> Welcome:</span> <?php echo $_SESSION['user']; ?>
+           </p>
+        </div>
+        <div class="row">
+          <?php 
+            $qry = "select * from product order by productId desc";
+            $rslt = $db->query($qry);
+
+            foreach($rslt as $row)
+            {
+          ?>
+          <div class="col-md-4">
+          <div class="card">
+              <img src="<?php echo 'image/'.$row['productPic']; ?>" alt="<?php echo $row['productName'] ?>" style="width:auto; height:200px;">
+              <h1 style="text-transform:uppercase;"><?php echo $row['productName'] ?></h1>
+              <p class="price">$<?php echo $row['productRate'] ?></p>             
+              <p><button>Add to Cart</button></p>
+            </div>
+          </div>
+          <?php 
+            }
+          ?>
         </div>
       </div>
     <!-- Optional JavaScript -->
